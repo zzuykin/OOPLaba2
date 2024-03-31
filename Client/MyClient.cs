@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics.Tracing;
 
 namespace Client
 {
@@ -53,7 +54,7 @@ namespace Client
             }
         }
 
-        public void SendMess(string mess)
+        public string SendMess(string mess)
         {
             try
             {
@@ -66,24 +67,33 @@ namespace Client
                 answer.Append(Encoding.UTF8.GetString(buffer, 0, size));
                 Console.WriteLine("Получен ответ с сервера:");
                 Console.WriteLine(answer.ToString());
-                //return answer.ToString();
+                return answer.ToString();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return "";
             }
         }
-        async public Task SendMessAsync(string mess)
+        async public Task<string> SendMessAsync(string mess)
         {
             try
             {
                 Console.WriteLine("Succses sent message");
                 byte[] data = Encoding.UTF8.GetBytes(mess);
                 await TcpSocket.SendAsync(data);
+                var buffer = new byte[1024];
+                var answer = new StringBuilder();
+                var size = await TcpSocket.ReceiveAsync(buffer);
+                answer.Append(Encoding.UTF8.GetString(buffer, 0, size));
+                Console.WriteLine("Получен ответ с сервера:");
+                Console.WriteLine(answer.ToString());
+                return answer.ToString();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return "";
             }
         }
         public void ConnectClose()

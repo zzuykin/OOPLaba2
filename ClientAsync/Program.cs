@@ -12,7 +12,7 @@ try
     //Console.WriteLine("Введите сообщние для запроса:");
     //var mess = Console.ReadLine();
     Stopwatch timer = new Stopwatch();
-    MyClient client = new MyClient(IPAddress.Parse(IP),Port2);
+    MyClient client = new MyClient(IPAddress.Parse(IP),Port1);
 
     //// 1 сервер
     timer.Start();
@@ -20,19 +20,15 @@ try
     await client.SendMessAsync("СOW");
     await client.SendMessAsync("Mouse");
     client.ConnectClose();
-    
+
 
     // 2 сервер
+    client = new MyClient(IPAddress.Parse(IP), Port2);
     await client.ConnectingAsync(Port2);
     await client.SendMessAsync("DOG");
     await client.SendMessAsync("CAT");
-    //var f = client.GetAnswer();
-    //Console.WriteLine(f);
     client.ConnectClose();
 
-    await client.ConnectingAsync(Port2);
-    await client.SendMessAsync("DOG");
-    client.ConnectClose();
 
     Console.WriteLine($"Время выполнения обработки запросов: {timer.Elapsed.TotalSeconds} секунд");
     Console.ReadLine();
