@@ -60,6 +60,13 @@ namespace Client
                 Console.WriteLine("Succses sent message");
                 byte[] data = Encoding.UTF8.GetBytes(mess);
                 TcpSocket.Send(data);
+                var buffer = new byte[1024];
+                var answer = new StringBuilder();
+                var size = TcpSocket.Receive(buffer);
+                answer.Append(Encoding.UTF8.GetString(buffer, 0, size));
+                Console.WriteLine("Получен ответ с сервера:");
+                Console.WriteLine(answer.ToString());
+                //return answer.ToString();
             }
             catch (Exception e)
             {
@@ -78,25 +85,6 @@ namespace Client
             {
                 Console.WriteLine(e.ToString());
             }
-            //var buffer = new byte[1024];
-            //var answer = new StringBuilder();
-            //var size = TcpSocket.Receive(buffer);
-            //answer.Append(Encoding.UTF8.GetString(buffer, 0, size));
-            //Console.WriteLine(answer.ToString());
-            //return answer.ToString();
-        }
-
-        public string GetAnswer()
-        {
-            var buffer = new byte[1024];
-            var answer = new StringBuilder();
-            while (TcpSocket.Available > 0)
-            {
-                var size = TcpSocket.Receive(buffer);
-                answer.Append(Encoding.UTF8.GetString(buffer, 0, size));
-            }
-            Console.WriteLine(answer.ToString());
-            return answer.ToString();
         }
         public void ConnectClose()
         {

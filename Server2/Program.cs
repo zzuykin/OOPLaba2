@@ -1,8 +1,6 @@
-﻿
+﻿using System.Net.Sockets;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-
 
 const string IP = "127.0.0.1";
 const int Port = 8080;
@@ -14,36 +12,48 @@ try
     TcpSoket.Bind(EndPoint);
     Console.WriteLine("Сервер 2 включён");
     TcpSoket.Listen();
-    Console.WriteLine($"Ожидаем сооедениение порта {EndPoint}");
+    Console.WriteLine($"Ожидаем соединение порта {EndPoint}");
     while (true)
     {
         var listener = await TcpSoket.AcceptAsync();
-        var data = new StringBuilder();
-        var buffer = new byte[1024];
-        int size;
-        do
+        Console.WriteLine("Клиент подключен");
+
+        while (true)
         {
-            size = await listener.ReceiveAsync(buffer);
-            data.Append(Encoding.UTF8.GetString(buffer, 0, size));
+            byte[] buffer = new byte[1024];
+            int bytesRead = await listener.ReceiveAsync(buffer, SocketFlags.None);
+
+            if (bytesRead > 0)
+            {
+                string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Сервер получил сообщение: {receivedMessage}");
+
+                // Обработка полученного сообщения
+                for (int i = 0; i <= 10; i++)
+                {
+                    Console.Write($"{10 * i}% ");
+                    await Task.Delay(50);
+                }
+                var processedMessage = receivedMessage + " - длинна сообещения = " + Convert.ToString(receivedMessage.Length) + " (сервер 2)";
+                Console.WriteLine(processedMessage);
+
+                // Отправка ответа клиенту
+                byte[] responseBytes = Encoding.UTF8.GetBytes(processedMessage);
+                await listener.SendAsync(responseBytes, SocketFlags.None);
+            }
+            else
+            {
+                // Клиент закрыл соединение, выходим из внутреннего цикла
+                Console.WriteLine("Клиент закрыл соединение");
+                break;
+            }
         }
-        while (size > 0);
-        Console.WriteLine("Сервер получил сообщение!");
-        Console.WriteLine("Изменяю сообщение :)");
-        for (int i = 0; i <= 10; i++)
-        {
-            Console.Write($"{10 * i}% ");
-            await Task.Delay(50);
-        }
-        data.Append(" - Колличество слов в тексте: " + Convert.ToString(data.Length));
-        Console.WriteLine("Успешно!");
-        Console.WriteLine(data.ToString());
-        listener.Send(Encoding.UTF8.GetBytes("Ответ с сервера 2:\n" + data.ToString()));
+
+        // Закрываем соединение с клиентом
         listener.Shutdown(SocketShutdown.Both);
         listener.Close();
+        Console.WriteLine("Соединение с клиентом закрыто");
     }
-    TcpSoket.Dispose();
-    Console.WriteLine("Socket closed");
-
 }
 catch (Exception exception)
 {
@@ -51,5 +61,6 @@ catch (Exception exception)
 }
 finally
 {
-    Console.ReadLine();
+    TcpSoket.Dispose();
+    Console.WriteLine("Socket closed");
 }

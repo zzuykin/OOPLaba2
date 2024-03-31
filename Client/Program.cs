@@ -14,8 +14,6 @@ const int Port2 = 8080;
 
 try
 {
-    //Console.WriteLine("Введите сообщние для запроса:");
-    //var mess = Console.ReadLine();
     Stopwatch timer = new Stopwatch();
     MyClient client = new MyClient(IPAddress.Parse(IP),Port1);
     //1 сервер
@@ -23,11 +21,12 @@ try
     client.Connecting(Port1);
     client.SendMess("СOW");
     client.SendMess("Mouse");
-
+    client.ConnectClose();
     //2 сервер
+    client = new MyClient(IPAddress.Parse(IP), Port2);
     client.Connecting(Port2);
-    client.SendMess("СOW");
-    client.SendMess("Mouse");
+    client.SendMess("Fox");
+    client.SendMess("Snake");
     client.ConnectClose();
     timer.Stop();
 

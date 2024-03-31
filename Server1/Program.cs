@@ -34,7 +34,7 @@ try
                     Console.Write($"{10 * i}% ");
                     await Task.Delay(50);
                 }
-                var processedMessage = receivedMessage + " - " + Convert.ToString(receivedMessage.Length);
+                var processedMessage = receivedMessage + " - длинна сообещения = " + Convert.ToString(receivedMessage.Length) + " (сервер 1)";
                 Console.WriteLine(processedMessage);
 
                 // Отправка ответа клиенту
