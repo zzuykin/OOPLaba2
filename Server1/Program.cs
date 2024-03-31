@@ -1,46 +1,59 @@
-﻿
+﻿using System.Net.Sockets;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-
 
 const string IP = "127.0.0.1";
 const int Port = 8000;
 var EndPoint = new IPEndPoint(IPAddress.Parse(IP), Port);
 
-var TcpSoket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+var TcpSoket = new Socket(EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 try
 {
     TcpSoket.Bind(EndPoint);
-    TcpSoket.Listen(5);
-
+    Console.WriteLine("Сервер 1 включён");
+    TcpSoket.Listen();
+    Console.WriteLine($"Ожидаем соединение порта {EndPoint}");
     while (true)
     {
-        Console.WriteLine($"Ожидвем сооедениение порта {EndPoint}");
+        var listener = await TcpSoket.AcceptAsync();
+        Console.WriteLine("Клиент подключен");
 
-        var data = new StringBuilder();
-        var listener = await TcpSoket.AcceptAsync(); // новый сокет для подключения конкретного клиента
-        var buffer = new byte[1024];
-        var size = await listener.ReceiveAsync(buffer);
-        data.Append(Encoding.UTF8.GetString(buffer, 0, size));
-
-        Console.WriteLine("Сервер получил сообщение!");
-        Console.WriteLine("Изменяю сообщение :)");
-
-        for (int i = 0; i < 10; i++)
+        while (true)
         {
-            Console.Write($"{10 * i}% ");
-            data.Append("!");
-            await Task.Delay(100);
+            byte[] buffer = new byte[1024];
+            int bytesRead = await listener.ReceiveAsync(buffer, SocketFlags.None);
+
+            if (bytesRead > 0)
+            {
+                string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Сервер получил сообщение: {receivedMessage}");
+
+                // Обработка полученного сообщения
+                for (int i = 0; i <= 10; i++)
+                {
+                    Console.Write($"{10 * i}% ");
+                    await Task.Delay(50);
+                }
+                var processedMessage = receivedMessage + " - " + Convert.ToString(receivedMessage.Length);
+                Console.WriteLine(processedMessage);
+
+                // Отправка ответа клиенту
+                byte[] responseBytes = Encoding.UTF8.GetBytes(processedMessage);
+                await listener.SendAsync(responseBytes, SocketFlags.None);
+            }
+            else
+            {
+                // Клиент закрыл соединение, выходим из внутреннего цикла
+                Console.WriteLine("Клиент закрыл соединение");
+                break;
+            }
         }
-        Console.WriteLine("Успешно!");
-        Console.WriteLine(data.ToString());
-        await listener.SendAsync(Encoding.UTF8.GetBytes("Ответ с сервера 1:\n" + data.ToString()));
+
+        // Закрываем соединение с клиентом
         listener.Shutdown(SocketShutdown.Both);
         listener.Close();
+        Console.WriteLine("Соединение с клиентом закрыто");
     }
-
 }
 catch (Exception exception)
 {
@@ -48,5 +61,6 @@ catch (Exception exception)
 }
 finally
 {
-    Console.ReadLine();
+    TcpSoket.Dispose();
+    Console.WriteLine("Socket closed");
 }
